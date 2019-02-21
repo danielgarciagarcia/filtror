@@ -1,0 +1,918 @@
+; MACROS -------------------------------------------------------------------------->
+
+
+PUSH: 				MACRO(ra)
+						subu r30, r30, 4
+						st ra, r30, 0
+					ENDMACRO
+
+POP: 				MACRO(ra)
+						ld ra, r30, 0
+						addu r30, r30, 4
+					ENDMACRO
+
+LEA: 				MACRO(ra, DIR)
+						or ra, r0, low(DIR)
+						or ra, ra, high(DIR)
+					ENDMACRO
+
+
+; <-------------------------------------------------------------------------- MACROS
+
+
+
+
+
+
+
+
+
+
+; PROGRAMA PRINCIPAL -------------------------------------------------------------->
+
+
+;		DECLARACIÓN DE VARIABLES -------------------------------------------------->
+
+					org 0x00000000
+nF: 				
+					data 100
+
+					org 0x00000500
+IMAGEN1:			
+					data 	4, 8
+					data 	0x01010101, 0x01010101
+					data 	0x01010101, 0x01010101
+					data 	0x01010101, 0x01010101
+					data 	0x01010101, 0x01010101
+
+IMAGEN2:
+					data 	4, 8
+					data 	0x00000000, 0x00000000
+					data 	0x00000000, 0x00000000
+					data 	0x00000000, 0x00000000
+					data 	0x00000000, 0x00000000
+
+IMAGEN3:
+					data 	4, 8
+					data 	0x0000FF00, 0x0000FF00
+					data 	0x0000FF00, 0x0000FF00
+					data	0x00FF0000, 0x00FF0000
+					data 	0x00FF0000, 0x00FF0000
+
+MFILTRO1:
+					data 0x00000000, 0x00000001, 0x00000000
+					data 0x00000001, 0x00000000, 0x00000001
+					data 0x00000000, 0x00000001, 0x00000000
+
+MFILTRO2:
+					data 0x00000001, 0x00000006, 0x00000001
+					data 0x00000006, 0x00000001, 0x00000006
+					data 0x00000001, 0x00000006, 0x00000001
+
+MFILTRO3:
+					data 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF
+					data 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF
+					data 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF
+
+OPER1:
+					data -9
+					
+OPER2:
+					data 1
+
+OPER3:
+					data 0
+					
+DUPLA1:
+					data 2, 0
+					
+DUPLA2:
+					data 0, 0
+
+DUPLA3:
+					data 1, 1
+					
+POSSUBMATRIZ:		data 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF
+					
+i1:					data 1
+
+i2:					data 3
+
+i3:					data 0
+
+j1:					data 2
+
+j2:					data 4
+
+j3:					data 0
+
+SUBMATRIZ1:	
+					data 0x04030201, 0x08070605, 0x00
+
+SUBMATRIZ2:	
+					data 0x01010101, 0x01010101, 0x01
+
+SUBMATRIZ3:	
+					data 0x00000000, 0x00010100, 0x00
+
+MATRIZFILTRADA:
+					res 40
+					
+NFILTRADOS1:
+					data 5
+
+NFILTRADOS2:
+					data 0
+					
+NUMEROFILTRADOS3:
+					data 2
+					
+NCAMBIOS1:
+					data 1
+
+NCAMBIOS2:
+					data 40
+
+NCAMBIOS3:
+					data 10
+
+;		<-------------------------------------------------- DECLARACIÓN DE VARIABLES
+
+
+; 		PRUEBA DE LA SUBRUTINA nFiltrados ----------------------------------------->
+
+PPALNFILT1:
+					LEA(r30, 0x0000F000)
+					or r2, r0, 9
+					st r2, r0, r0
+					LEA(r3, OPER1)
+					ld r3, r3, r0
+					PUSH(r3)
+					bsr nFiltrados
+					stop
+					
+PPALNFILT2:
+					LEA(r30, 0x0000F000)
+					or r2, r0, 1
+					st r2, r0, r0
+					LEA(r3, OPER2)
+					ld r3, r3, r0
+					PUSH(r3)
+					bsr nFiltrados
+					stop
+					
+PPALNFILT3:
+					LEA(r30, 0x0000F000)
+					or r2, r0, 5
+					st r2, r0, r0
+					LEA(r3, OPER3)
+					ld r3, r3, r0
+					PUSH(r3)
+					bsr nFiltrados
+					stop
+
+;		<------------------------------------------ PRUEBA DE LA SUBRUTINA nFiltrados
+
+
+; 		PRUEBA DE LA SUBRUTINA Comp ----------------------------------------------->
+
+PPALCOMP1:
+					LEA(r30, 0x0000F000)
+					LEA(r2, IMAGEN1)
+					LEA(r3, IMAGEN2)
+					PUSH(r3)
+					PUSH(r2)
+					bsr Comp
+					stop
+
+PPALCOMP2:
+					LEA(r30, 0x0000F000)
+					LEA(r2, IMAGEN2)
+					LEA(r3, IMAGEN3)
+					PUSH(r3)
+					PUSH(r2)
+					bsr Comp
+					stop
+
+PPALCOMP3:
+					LEA(r30, 0x0000F000)
+					LEA(r2, IMAGEN1)
+					LEA(r3, IMAGEN1)
+					PUSH(r3)
+					PUSH(r2)
+					bsr Comp
+					stop
+
+;		<----------------------------------------------- PRUEBA DE LA SUBRUTINA Comp
+
+
+; 		PRUEBA DE LA SUBRUTINA ActualizaFiltro ------------------------------------>
+
+PPALACTFIL1:	
+					LEA(r30, 0x0000F000)
+					LEA(r2, MFILTRO1)
+					LEA(r3, DUPLA1)
+					PUSH(r3)
+					PUSH(r2)
+					bsr ActualizaFiltro
+					stop
+					
+PPALACTFIL2:	
+					LEA(r30, 0x0000F000)
+					LEA(r2, MFILTRO2)
+					LEA(r3, DUPLA2)
+					PUSH(r3)
+					PUSH(r2)
+					bsr ActualizaFiltro
+					stop
+
+PPALACTFIL3:	
+					LEA(r30, 0x0000F000)
+					LEA(r2, MFILTRO3)
+					LEA(r3, DUPLA3)
+					PUSH(r3)
+					PUSH(r2)
+					bsr ActualizaFiltro
+					stop
+					
+;		<------------------------------------ PRUEBA DE LA SUBRUTINA ActualizaFiltro
+
+
+; 		PRUEBA DE LA SUBRUTINA SubMatriz ------------------------------------------>
+
+PPALSUBMATRIZ1:		
+					LEA(r30, 0x0000F000)
+					LEA(r2, IMAGEN1)
+					LEA(r3, POSSUBMATRIZ)
+					LEA(r4, i1)
+					LEA(r5, j2)
+					ld r4, r4, r0
+					ld r5, r5, r0
+					PUSH(r5)
+					PUSH(r4)
+					PUSH(r3)
+					PUSH(r2)
+					bsr SubMatriz
+					stop
+
+PPALSUBMATRIZ2:		
+					LEA(r30, 0x0000F000)
+					LEA(r2, IMAGEN2)
+					LEA(r3, POSSUBMATRIZ)
+					LEA(r4, i2)
+					LEA(r5, j1)
+					ld r4, r4, r0
+					ld r5, r5, r0
+					PUSH(r5)
+					PUSH(r4)
+					PUSH(r3)
+					PUSH(r2)
+					bsr SubMatriz
+					stop
+
+PPALSUBMATRIZ3:		
+					LEA(r30, 0x0000F000)
+					LEA(r2, IMAGEN3)
+					LEA(r3, POSSUBMATRIZ)
+					LEA(r4, i3)
+					LEA(r5, j3)
+					ld r4, r4, r0
+					ld r5, r5, r0
+					PUSH(r5)
+					PUSH(r4)
+					PUSH(r3)
+					PUSH(r2)
+					bsr SubMatriz
+					stop
+					
+;		<------------------------------------------ PRUEBA DE LA SUBRUTINA SubMatriz
+
+
+; 		PRUEBA DE LA SUBRUTINA ValorPixel ----------------------------------------->
+
+PPALVALPIXEL1:
+					LEA(r30, 0x0000F000)
+					LEA(r2, SUBMATRIZ1)
+					LEA(r3, MFILTRO1)
+					PUSH(r3)
+					PUSH(r2)
+					bsr ValorPixel
+					stop
+					
+PPALVALPIXEL2:
+					LEA(r30, 0x0000F000)
+					LEA(r2, SUBMATRIZ2)
+					LEA(r3, MFILTRO2)
+					PUSH(r3)
+					PUSH(r2)
+					bsr ValorPixel
+					stop
+					
+PPALVALPIXEL3:
+					LEA(r30, 0x0000F000)
+					LEA(r2, SUBMATRIZ3)
+					LEA(r3, MFILTRO3)
+					PUSH(r3)
+					PUSH(r2)
+					bsr ValorPixel
+					stop
+
+;		<------------------------------------------ PRUEBA DE LA SUBRUTINA ValorPixel
+
+
+; 		PRUEBA DE LA SUBRUTINA FilPixel ------------------------------------------->
+
+PPALFILPIXEL1:					
+					LEA(r30, 0x0000F000)
+					LEA(r2, IMAGEN1)
+					LEA(r3, i1)
+					LEA(r4, j1)
+					LEA(r5, MFILTRO1)
+					PUSH(r5)
+					PUSH(r4)
+					PUSH(r3)
+					PUSH(r2)
+					bsr FilPixel
+					stop
+					
+PPALFILPIXEL2:					
+					LEA(r30, 0x0000F000)
+					LEA(r2, IMAGEN2)
+					LEA(r3, i2)
+					LEA(r4, j2)
+					LEA(r5, MFILTRO2)
+					PUSH(r5)
+					PUSH(r4)
+					PUSH(r3)
+					PUSH(r2)
+					bsr FilPixel
+					stop
+
+PPALFILPIXEL3:					
+					LEA(r30, 0x0000F000)
+					LEA(r2, IMAGEN3)
+					LEA(r3, i3)
+					LEA(r4, j3)
+					LEA(r5, MFILTRO3)
+					PUSH(r5)
+					PUSH(r4)
+					PUSH(r3)
+					PUSH(r2)
+					bsr FilPixel
+					stop
+
+;		<------------------------------------------- PRUEBA DE LA SUBRUTINA FilPixel
+
+
+; 		PRUEBA DE LA SUBRUTINA Filtro --------------------------------------------->
+
+PPALFILTRO1:						
+					LEA(r30, 0x0000F000)
+					LEA(r2, IMAGEN1)
+					LEA(r3, MATRIZFILTRADA)
+					LEA(r4, MFILTRO1)
+					PUSH(r4)
+					PUSH(r3)
+					PUSH(r2)
+					bsr Filtro
+					stop
+
+PPALFILTRO2:						
+					LEA(r30, 0x0000F000)
+					LEA(r2, IMAGEN2)
+					LEA(r3, MATRIZFILTRADA)
+					LEA(r4, MFILTRO2)
+					PUSH(r4)
+					PUSH(r3)
+					PUSH(r2)
+					bsr Filtro
+					stop
+					
+PPALFILTRO3:						
+					LEA(r30, 0x0000F000)
+					LEA(r2, IMAGEN2)
+					LEA(r3, MATRIZFILTRADA)
+					LEA(r4, MFILTRO2)
+					PUSH(r4)
+					PUSH(r3)
+					PUSH(r2)
+					bsr Filtro
+					stop
+
+;		<--------------------------------------------- PRUEBA DE LA SUBRUTINA Filtro
+
+
+; 		PRUEBA DE LA SUBRUTINA FiltRec -------------------------------------------->
+
+PPALFILTREC1:
+					or r30, r0, 0x0000F000
+					or r31, r30, r30
+					LEA(r10, NFILTRADOS1)
+					ld r10, r10, r0
+					PUSH (r10)
+					bsr nFiltrados
+					addu r30, r30, 4
+					LEA (r10, IMAGEN1)
+					LEA (r11, MATRIZFILTRADA)
+					LEA (r12, MFILTRO1)
+					LEA (r13, DUPLA1)
+					LEA(r14, NCAMBIOS1)
+					ld r14, r14, r0
+					PUSH (r14)
+					PUSH (r13)
+					PUSH (r12)
+					PUSH (r11)
+					PUSH (r10)
+					bsr FiltRec
+					stop
+					
+PPALFILTREC2:
+					or r30, r0, 0x0000F000
+					or r31, r30, r30
+					LEA(r10, NFILTRADOS2)
+					ld r10, r10, r0
+					PUSH (r10)
+					bsr nFiltrados
+					addu r30, r30, 4
+					LEA (r10, IMAGEN2)
+					LEA (r11, MATRIZFILTRADA)
+					LEA (r12, MFILTRO2)
+					LEA (r13, DUPLA2)
+					LEA(r14, NCAMBIOS2)
+					ld r14, r14, r0
+					PUSH (r14)
+					PUSH (r13)
+					PUSH (r12)
+					PUSH (r11)
+					PUSH (r10)
+					bsr FiltRec
+					stop
+					
+PPALFILTREC3:
+					or r30, r0, 0x0000F000
+					or r31, r30, r30
+					LEA(r10, NUMEROFILTRADOS3)
+					ld r10, r10, r0
+					PUSH (r10)
+					bsr nFiltrados
+					addu r30, r30, 4
+					LEA (r10, IMAGEN3)
+					LEA (r11, MATRIZFILTRADA)
+					LEA (r12, MFILTRO3)
+					LEA (r13, DUPLA3)
+					LEA(r14, NCAMBIOS3)
+					ld r14, r14, r0
+					PUSH (r14)
+					PUSH (r13)
+					PUSH (r12)
+					PUSH (r11)
+					PUSH (r10)
+					bsr FiltRec
+					stop
+
+;		<-------------------------------------------- PRUEBA DE LA SUBRUTINA FiltRec
+
+
+; <-------------------------------------------------------------- PROGRAMA PRINCIPAL
+
+
+
+
+
+
+
+
+
+
+; PROGRAMA DE SUBRUTINAS ---------------------------------------------------------->
+
+
+
+
+		; SUBRUTINA NFILTRADOS ---------------------------------------------------->
+
+		; r2: Valor oper | Variable estática nF (cargada de pos. mem. 0)
+		; r29: Resultado
+
+
+				nFiltrados:         PUSH(r1)
+									ld r2, r30, 4               	; Valor oper
+									cmp r7, r2, r0              	; ¿Oper >= 0? Sí -> nF = oper | No -> nF--
+									bb1 ge, r7, mayorigualnFil
+									ld r2, r0, r0               	; Cargar valor de nF (de la pos. mem. 0)
+									subu r2, r2, 1					; Decrementar nF
+									cmp r7, r2, r0              	; ¿nF >= 0? Sí -> Finalizar | No -> Poner a 0
+									bb1 ge, r7, mayorigualnFil
+									or r2, r0, r0
+				mayorigualnFil:     st r2, r0, r0               	; Actualizar nF			
+				finalizarnFil:      or r29, r2, r2              	; Almacenar resultado en r29. r2 = oper | nF decrementado | 0, según los saltos anteriores.
+									POP(r1)
+									jmp(r1)
+
+
+		; <---------------------------------------------------- SUBRUTINA NFILTRADOS
+
+
+
+		; SUBRUTINA COMP ---------------------------------------------------------->
+
+		; r2: Acumulador Dif    r4: Valor M     r7: Comparaciones       r10: Operaciones temporales
+		; r3: Puntero Img1      r5: Valor N     r9: Contador            r11: Elemento de la matriz Img1
+		; r8: Puntero Img2      r6: Valor MxN   r29: Resultado          r12: Elemento de la matriz Img2
+
+
+				Comp:               PUSH(r1)
+									or r2, r0, r0               	; Inicializar acumulador Dif a 0
+									ld r3, r30, 4               	; Puntero Img1 apuntando a M
+									ld r4, r3, r0               	; Valor de M
+									ld r5, r3, 4                	; Valor de N
+									mulu r6, r4, r5             	; Nº elementos: MxN
+									or r9, r6, r6               	; Contador = MxN
+									ld r8, r30, 8               	; Puntero Img2 apuntando a M
+									addu r3, r3, 8              	; Apuntar puntero Img1 al primer elemento (a)11
+									addu r8, r8, 8              	; Apuntar puntero Img2 al primer elemento (b)11
+				bucleComp:          cmp r7, r9, r0              	; ¿Contador = 0? Sí -> Finalizar | No -> Actualiza Dif
+									bb1 eq, r7, finalizarComp
+									ld.bu r11, r3, r0           	; Cargar elemento de Img1
+									ld.bu r12, r8, r0           	; Cargar elemento de Img2
+									sub r10, r11, r12
+									muls r10, r10, r10
+									add r2, r2, r10
+									subu r9, r9, 1              	; Decrementar contador
+									addu r3, r3, 1             		; Avanzar puntero de Img1
+									addu r8, r8, 1              	; Avanzar puntero de Img2   
+									br bucleComp
+				finalizarComp:      divu r29, r2, r6            	; Resultado = Dif/MxN
+									POP(r1)
+									jmp(r1)
+
+
+		; <---------------------------------------------------------- SUBRUTINA COMP
+
+
+
+		; SUBRUTINA ACTUALIZAFILTRO ----------------------------------------------->
+
+		; r2: Puntero MFiltro       r5: Numerador       			r8: Elemento MFiltro
+		; r3: Puntero ModFiltro     r6: Denominador
+		; r4: Contador              r7: Comparaciones
+
+
+				ActualizaFiltro:    PUSH(r1)
+									ld r2, r30, 4               	; Puntero MFiltro
+									ld r3, r30, 8               	; Puntero ModFiltro
+									or r4, r0, 9                	; Contador = 9 (Matriz 3x3 -> 9 elementos)
+									ld r5, r3, r0               	; Valor numerador
+									cmp r7, r5, r0              	; ¿Numerador = 0? Sí -> Finalizar | No -> Sigue
+									bb1 eq, r7, finalizarActFil
+									ld r6, r3, 4                	; Valor denominador
+									cmp r7, r6, r0
+									bb1 eq, r7, finalizarActFil 	; ¿Denominador = 0? Sí -> Finalizar | No -> Sigue
+				bucleActFilt:       cmp r7, r4, r0              	; ¿Contador = 0? Sí -> Finalizar | No -> Elemento MFiltro*ModFiltro
+									bb1 eq, r7, finalizarActFil
+									ld r8, r2, r0               	; Cargar elemento MFiltro
+									muls r8, r8, r5 
+									divs r8, r8, r6
+									st r8, r2, r0					; Almacenar elemento actualizado en MFiltro
+									subu r4, r4, 1            	  	; Decrementar contador
+									addu r2, r2, 4             	 	; Avanzar puntero MFiltro
+									br bucleActFilt
+				finalizarActFil:    POP(r1)
+									jmp(r1)
+
+
+		; <----------------------------------------------- SUBRUTINA ACTUALIZAFILTRO
+
+
+
+		; SUBRUTINA SUBMATRIZ ----------------------------------------------------->
+
+		; r2: Puntero Imagen     	r6: Valor M 					r10: Elemento Imagen
+		; r3: Puntero SubMatriz     r7: Comparaciones				r11: Contador SubMatriz
+		; r4: Valor i				r8: Valor N						r13: Contador auxiliar
+		; r5: Valor j				r9: Operaciones temporales
+
+
+				SubMatriz:			PUSH(r1)
+									ld r2, r30, 4					; Puntero Imagen (apuntando a M)
+									ld r3, r30, 8					; Puntero SubMatriz (apuntando a primer elemento)
+									ld r4, r30, 12					; Valor i (fila objetivo)
+									ld r5, r30, 16					; Valor j (columna objetivo)
+									ld r6, r2, r0					; Valor M (nº filas)
+									ld r8, r2, 4					; Valor N (nº columnas)
+									or r11, r0, 9					; Contador SubMatriz a 9 (Matriz 3x3 -> 9 elementos)
+									addu r2, r2, 8					; Apuntar Puntero Imagen a primer elemento
+									or r13, r0, r0					; Contador auxiliar a 0		
+									mulu r9, r4, r8					; Avanzar Puntero Imagen en (i*N+j) posiciones
+									addu r9, r9, r5
+									addu r2, r2, r9
+									cmp r7, r4, r0					; ¿i = 0? Sí -> Elemento borde | No -> Seguir comprobando si es borde
+									bb1 eq, r7, bordeSubMatriz
+									subu r9, r6, 1
+									cmp r7, r4, r9					; ¿i = M-1? Sí -> Elemento borde | No -> Seguir comprobando si es borde
+									bb1 eq, r7, bordeSubMatriz
+									cmp r7, r5, r0					; ¿j = 0? Sí -> Elemento borde | No -> Seguir comprobando si es borde
+									bb1 eq, r7, bordeSubMatriz
+									subu r9, r8, 1
+									cmp r7, r5, r9					; ¿j = N-1? Sí -> Elemento borde | No -> Elemento no es borde.
+									bb0 eq, r7, noBordeSubMatriz		
+				bordeSubMatriz:		ld.b r14, r2, r0
+									st.b r14, r3, r0				; Almacenar elemento Puntero Imagen en posición Puntero SubMatriz
+									addu r3, r3, 1					; Avanzar Puntero SubMatriz
+									subu r11, r11, 1				; Decrementa Contador SubMatriz
+									cmp r7, r11, r0					; ¿Contador SubMatriz = 0? Sí -> Finalizar | No -> Incrementar Puntero SubMatriz
+									bb1 eq, r7, finalizarSubMatriz
+									br bordeSubMatriz
+				noBordeSubMatriz:	subu r2, r2, r8					; Apuntar Puntero Imagen al primer elemento (Puntero Imagen-N-1) de la submatriz 3x3 a extraer
+									subu r2, r2, 1
+				bucleSubMatriz:		ld.b r14, r2, r0
+									st.b r14, r3, 0					; Almacenar elemento Puntero Imagen en posición Puntero SubMatriz
+									addu r13, r13, 1				; Incrementar Contador Auxiliar
+									addu r3, r3, 1					; Avanzar Puntero SubMatriz
+									subu r11, r11, 1				; Decrementa Contador SubMatriz
+									addu r2, r2, 1					; Avanzar Puntero Imagen
+									cmp r7, r13, 3					; ¿Contador auxiliar = 3? Sí -> Comprobar si finalizado | No -> Seguir extrayendo
+									bb1 eq, r7, auxTresSubMatriz
+									br bucleSubMatriz
+				auxTresSubMatriz:	cmp r7, r11, r0					; ¿Contador SubMatriz  = 0? Sí -> Finalizar | No -> Seguir extrayendo en la siguiente fila
+									bb1 eq, r7, finalizarSubMatriz
+									subu r2, r2, 3					; Retroceder a la primera columna de la submatriz a extraer y saltar de fila (retroceder 3 compensa el avance del puntero Imagen)
+									addu r2, r2, r8
+									or r13, r0, r0					; Contador auxiliar a 0
+									br bucleSubMatriz
+				finalizarSubMatriz:	POP(r1)
+									jmp(r1)
+
+
+		; <----------------------------------------------------- SUBRUTINA SUBMATRIZ
+
+
+
+		; SUBRUTINA VALORIXEL ----------------------------------------------------->
+
+		; r2: Acumulador Acc        r5: Puntero MFiltro			r8: Elemento MFiltro 
+		; r3: Contador       		r6: Elemento SubImg			r9: Operaciones temporales
+		; r4: Puntero SubImg		r7: Comparaciones
+
+
+				ValorPixel:			PUSH(r1)
+									or r2, r0, r0				; Inicializar acumulador Acc a 0
+									or r3, r0, 9				; Contador = 9 (Matrices 3x3 -> 9 elementos)
+									ld r4, r30, 4				; Puntero SubImg
+									ld r5, r30, 8				; Puntero MFiltro
+				bucleValorPixel:	cmp r7, r3, r0				; ¿Contador = 0? Sí -> Finalizar | No -> Acc = Acc + Elem_SubImg * Elem_ModFiltro
+									bb1 eq, r7, finalizarValPix
+									ld.bu r6, r4, r0			; Cargar elemento SubImg
+									ld r8, r5, r0				; Cargar elemento MFiltro
+									muls r9, r6, r8
+									add r2, r2, r9
+									addu r4, r4, 1				; Avanzar puntero SubImg (1 byte)
+									addu r5, r5, 4				; Avanzar puntero MFiltro
+									subu r3, r3, 1				; Decrementar contador
+									br bucleValorPixel
+				finalizarValPix:	or r29, r2, r2				; Resultado = Acc
+									POP(r1)
+									jmp(r1)
+
+
+		; <----------------------------------------------------- SUBRUTINA VALORIXEL
+
+
+
+		; SUBRUTINA FILPIXEL ------------------------------------------------------>
+
+		; r2: Puntero Img           r5: Puntero MFiltro             r9: Contador MFiltro
+		; r3: Valor i               r7: Comparaciones
+		; r4: Valor j               r8: Operaciones para VP Filtr.
+
+				FilPixel:           PUSH(r1)
+									PUSH(r31)                   ; Creación del marco de pila
+									or r31, r30, r30
+									ld r2, r31, 8               ; Puntero Img
+									ld r3, r31, 12              ; Valor i
+									ld r4, r31, 16              ; Valor j
+									subu r30, r30, 12           ; Reserva espacio para SubMatriz
+									or r10, r30, r30			; Puntero SubMatriz
+									PUSH(r4)
+									PUSH(r3)
+									PUSH(r10)
+									PUSH(r2)
+									bsr SubMatriz
+									POP(r2)
+									POP(r10)
+									POP(r3)
+									POP(r4)
+									ld r5, r30, 32              ; Puntero MFiltro
+									PUSH(r5)
+									PUSH(r10)
+									bsr ValorPixel
+									POP(r10)
+									POP(r5)
+									or r8, r0, r0               ; Registro r8 a 0
+									or r9, r0, 9                ; Contador = 9 (Matrices 3x3 -> 9 elementos)
+				sumaMFilenFilPix:   ld r6, r5, r0               ; Cargar elemento de MFiltro
+									add r8, r8, r6              ; Suma de elementos de MFiltro
+									addu r5, r5, 4              ; Avanzar puntero MFiltro
+									subu r9, r9, 1              ; Decrementar contador
+									cmp r7, r9, r0
+									bb0 eq, r7, sumaMFilenFilPix
+									cmp r7, r8, r0
+									bb0 eq, r7, sigueFilPix
+									or r8, r0, 1
+				sigueFilPix:        divs r8, r29, r8
+									cmp r7, r8, r0
+									bb1 ge, r7, mayor0FilPix
+									or r8, r0, r0
+									br finalizarFilPix
+				mayor0FilPix:       cmp r7, r8, 255
+									bb1 le, r7, finalizarFilPix
+									or r8, r0, 255
+				finalizarFilPix:    or r29, r8, r8
+									or r30, r31, r31			; Restaurar el marco de pila
+									POP(r31)
+									POP(r1)
+									jmp(r1)
+
+
+		; <------------------------------------------------------ SUBRUTINA FILPIXEL
+
+
+
+		; SUBRUTINA FILTRO -------------------------------------------------------->
+
+		; r2: Puntero Imagen        r5: Valor M      		    r8: Contador filas
+		; r3: Puntero ImFiltrada    r6: Valor N					r9: Contador columnas
+		; r4: Puntero MFiltro       r7: Comparaciones
+
+				Filtro:				PUSH(r1)
+									PUSH(r31)					; Creación del marco de pila
+									or r31, r30, r30
+									ld r2, r30, 8				; Puntero Imagen
+									ld r3, r30, 12				; Puntero ImFiltrada
+									ld r4, r30, 16				; Puntero MFiltro
+									ld r5, r2, r0				; Valor de M
+									st r5, r3, r0				; Copiar valor de M en ImFiltrada
+									ld r6, r2, 4				; Valor de N
+									st r6, r3, 4				; Copiar valor de N en ImFiltrada
+									addu r3, r3, 8				; Avanzar puntero ImFiltrada a primer elemento
+									or r8, r0, r0				; Contador de filas
+									or r9, r0, r0				; Contador de columnas
+				bucleFilaFil:		cmp r7, r8, r5				; ¿Contador filas = número filas? Sí -> Finalizar subrutina | No -> Sigue
+									bb1 eq, r7, finalizarFil
+				bucleColFil:		PUSH(r5)
+									PUSH(r6)
+									PUSH(r3)
+									PUSH(r4)
+									PUSH(r9)
+									PUSH(r8)
+									PUSH(r2)
+									bsr FilPixel
+									POP(r2)
+									POP(r8)
+									POP(r9)
+									POP(r4)
+									POP(r3)
+									POP(r6)
+									POP(r5)
+									st.b r29, r3, r0			; Almacenar pixel filtrado en ImFiltrada
+									addu r9, r9, 1				; Incrementar columna
+									addu r3, r3, 1				; Avanzar puntero ImFiltrada
+									cmp r7, r9, r6				; ¿Contador columnas = número columnas? Sí -> Pasar a la siguiente fila | No -> Pasar a la siguiente columna
+									bb0 eq, r7, bucleColFil
+									addu r8, r8, 1				; Incrementar fila
+									or r9, r0, r0				; Reinicia contador columnas por ser nueva fila
+									br bucleFilaFil
+				finalizarFil:		or r30, r31, r31
+									POP(r31)
+									POP(r1)
+									jmp(r1)		
+
+
+		; <-------------------------------------------------------- SUBRUTINA FILTRO
+
+
+
+		; SUBRUTINA FILTREC ------------------------------------------------------->
+
+		; r2: Puntero ImagenIn      r5: Puntero ModMFiltro      r8: Valor M							r11: Operaciones temporales					r14: Copia Puntero ImagenTMP para iterar
+		; r3: Puntero ImagenOut     r6: Valor NCambios			r9: Valor N							r12: Puntero ImagenTMP
+		; r4: Puntero MFiltro       r7: Comparaciones			r10: Tamaño (bytes) de ImagenIn		r13: Copia Puntero ImagenOut para iterar
+
+				FiltRec:			PUSH(r1)
+									PUSH(r31)
+									or r31, r30, r30
+									ld r2, r30, 8				; Puntero ImagenIn
+									ld r3, r30, 12				; Puntero ImagenOut
+									ld r4, r30, 16				; Puntero MFiltro
+									ld r5, r30, 20				; Puntero ModMFiltro
+									ld r6, r30, 24				; Valor NCambios
+									ld r8, r2, r0				; Valor M
+									ld r9, r2, 4				; Valor N
+									mulu r10, r8, r9			; Número de elementos (MxN)
+				bucleajusteFiltRec:	divu r11, r10, 4			; Cálculo del número múltiplo de 4
+									mulu r11, r11, 4
+									cmp r7, r10, r11			; ¿TamañoNuevo = TamañoOriginal? Sí -> TamañoNuevo es múltiplo de 4 | No -> TamañoNuevo++
+									bb1 eq, r7, finbucleajFiltRec
+									addu r10, r10, 1
+									br bucleajusteFiltRec
+				finbucleajFiltRec:	addu r10, r10, 8			; Tamaño definitivo en bytes de ImagenIn
+									subu r30, r30, r10			; Reserva de espacio para la ImagenTMP
+									or r12, r30, r30			; Puntero ImagenTMP
+									PUSH(r6)
+									PUSH(r12)
+									PUSH(r10)
+									PUSH(r5)
+									PUSH(r4)
+									PUSH(r3)
+									PUSH(r2)
+									bsr Filtro					; Llamada a Filtro
+									POP(r2)
+									POP(r3)
+									POP(r4)
+									POP(r5)
+									POP(r10)
+									POP(r12)
+									POP(r6)
+									PUSH(r2)
+									PUSH(r6)
+									PUSH(r3)
+									PUSH(r12)
+									PUSH(r10)
+									PUSH(r5)
+									PUSH(r4)
+									bsr ActualizaFiltro			; Llamada a ActualizaFiltro
+									POP(r4)
+									POP(r5)
+									POP(r10)
+									POP(r12)
+									POP(r3)
+									POP(r6)
+									POP(r2)
+									or r13, r3, r3				; Duplicamos Puntero ImagenOut
+									or r14, r12, r12			; Duplicamos Puntero ImagenTMP
+				buclecopiaFiltRec:	ld r11, r13, r0				; Cargar elemento ImagenOut
+									st r11, r14, r0				; Copiar elemento en ImagenTMP
+									subu r10, r10, 4			; Una palabra menos por copiar
+									cmp r7, r10, r0				; ¿Quedan palabras por copiar? Sí -> Iniciar nueva iteración de copia | No -> Terminar bucle
+									bb1 eq, r7, finbucopFiltRec
+									addu r13, r13, 4			; Avanzar Puntero auxiliar ImagenOut
+									addu r14, r14, 4			; Avanzar Puntero auxiliar ImagenTMP
+									br buclecopiaFiltRec
+				finbucopFiltRec:	PUSH(r4)
+									PUSH(r5)
+									PUSH(r12)
+									PUSH(r6)
+									PUSH(r3)
+									PUSH(r2)
+									subu r11, r0, 1				; Cargamos en r11 el Oper -1
+									PUSH(r11)
+									bsr nFiltrados				; Llamada a nFiltrados para decrementar nF
+									POP(r11)
+									POP(r2)
+									POP(r3)
+									POP(r6)
+									POP(r12)
+									POP(r5)
+									POP(r4)
+									cmp r7, r29, r0				; ¿nF = 0? Sí -> Terminar recursividad con resultado -1 | No -> Sigue
+									bb1 eq, r7, finalFiltRecA
+									PUSH(r4)
+									PUSH(r5)
+									PUSH(r12)
+									PUSH(r6)
+									PUSH(r3)
+									PUSH(r2)
+									bsr Comp					; Llamada a Comp para comparar la imagen original y la filtrada
+									POP(r2)
+									POP(r3)
+									POP(r6)
+									POP(r12)
+									POP(r5)
+									POP(r4)
+									cmp r7, r29, r6				; ¿Comp(ImgOriginal, ImgFiltrada) < NCambios? Sí -> Terminar recursividad | No -> Sigue
+									bb1 lt, r7, finFiltRecB
+									PUSH(r6)
+									PUSH(r5)
+									PUSH(r4)
+									PUSH(r3)
+									PUSH(r12)
+									bsr FiltRec					; Iniciar recursividad
+									POP(r12)
+									POP(r3)
+									POP(r4)
+									POP(r5)
+									POP(r6)
+									br finFiltRecB
+				finalFiltRecA:		subu r29, r0, 1				; Resultado -1 (se han alcanzado el número máximo de filtrados)
+				finFiltRecB:		or r30, r31, r31
+									POP(r31)
+									POP(r1)
+									jmp(r1)
+
+
+		; <------------------------------------------------------- SUBRUTINA FILTREC
+
+
+
+
+; <---------------------------------------------------------- PROGRAMA DE SUBRUTINAS
